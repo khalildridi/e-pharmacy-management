@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: . # Chemin vers le répertoire contenant le Dockerfile du frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80" # Mappe le port 4200 de l'hôte au port 80 du conteneur
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./:/usr/src/app # Monte le répertoire local du backend dans le conteneur
+      - user/src/app/node_modules
+    depends_on:
+      - backend # S'assure que le backend est démarré avant le frontend
+    
+
+  backend:
+    build:
+      context: ./backend # Chemin vers le répertoire contenant le Dockerfile du backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000" # Mappe le port 5000 de l'hôte au port 5000 du conteneur
+    environment:
+      - NODE_ENV=production
+      - SECRET_KEY=your_secret_key # Remplacez par votre clé secrète
+      - MONGODB_URI=mongodb://mongo:27017/your_db_name # URI de la base de données MongoDB
+    volumes:
+      - ./backend:/usr/src/app # Monte le répertoire local du backend dans le conteneur
+      - user/src/app/node_modules
+    depends_on:
+      - mongo # S'assure que le service MongoDB est démarré avant le backend
+
+  mongo:
+    image: mongo:latest # Utilise l'image officielle de MongoDB
+    ports:
+      - "27017:27017" # Expose le port MongoDB
+    volumes:
+      - mongo-data:/data/db # Persiste les données de MongoDB
+
+volumes:
+  mongo-data: # Déclare le volume pour MongoDB
